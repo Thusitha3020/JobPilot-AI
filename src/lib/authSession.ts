@@ -20,12 +20,30 @@ export const GUEST_SESSION: UserSession = {
 const SESSION_STORAGE_KEY = "jobpilot_active_auth_session_v1";
 
 /**
- * Gets active session from browser local storage or returns GUEST_SESSION if unauthenticated.
+ * Reads initial session from URL query parameters (Google OAuth redirect) or browser local storage.
  */
-export function getStoredSession(): UserSession {
+export function getInitialSessionFromUrlOrStorage(): UserSession {
   if (typeof window === "undefined") return GUEST_SESSION;
 
   try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("loggedIn") === "true" && params.get("email")) {
+      const userEmail = params.get("email") || "";
+      const userName = params.get("name") || userEmail.split("@")[0];
+      const oauthSession: UserSession = {
+        id: `google-${Date.now()}`,
+        email: userEmail,
+        name: userName,
+        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userEmail}`,
+        provider: "google",
+        isLoggedIn: true,
+        loggedInAt: new Date().toISOString(),
+      };
+      saveStoredSession(oauthSession);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return oauthSession;
+    }
+
     const data = localStorage.getItem(SESSION_STORAGE_KEY);
     if (!data) return GUEST_SESSION;
     const session = JSON.parse(data) as UserSession;
@@ -33,6 +51,13 @@ export function getStoredSession(): UserSession {
   } catch {
     return GUEST_SESSION;
   }
+}
+
+/**
+ * Gets active session from browser local storage or returns GUEST_SESSION if unauthenticated.
+ */
+export function getStoredSession(): UserSession {
+  return getInitialSessionFromUrlOrStorage();
 }
 
 /**

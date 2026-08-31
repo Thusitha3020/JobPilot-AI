@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { NavItemId, Job } from "@/types/dashboard";
 import { INITIAL_METRICS, MOCK_JOBS, calculateMetricsFromJobs } from "@/data/mockJobs";
-import { UserSession, getStoredSession, signOutSession, saveStoredSession } from "@/lib/authSession";
+import { UserSession, getInitialSessionFromUrlOrStorage, signOutSession, saveStoredSession } from "@/lib/authSession";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { MetricsSection } from "@/components/dashboard/MetricsSection";
@@ -22,8 +22,8 @@ export default function DashboardPage() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isTopNavScannerOpen, setIsTopNavScannerOpen] = useState<boolean>(false);
 
-  // Authentication session state
-  const [session, setSession] = useState<UserSession>(() => getStoredSession());
+  // Authentication session state derived directly from storage/OAuth URL params
+  const [session, setSession] = useState<UserSession>(() => getInitialSessionFromUrlOrStorage());
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   // Live jobs state loaded from API endpoint /api/jobs

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mail, Lock, User, ShieldCheck, Sparkles, Loader2, ArrowRight } from "lucide-react";
+import { X, Mail, Lock, User, ShieldCheck, Sparkles, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
 import { UserSession, saveStoredSession } from "@/lib/authSession";
 import { Button } from "@/components/ui/button";
 
@@ -27,44 +27,41 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+  const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1081205534900-fn5p8ks3hoc7qjhhrj0ricdl2g71js97.apps.googleusercontent.com";
+
+  const handleGoogleRedirect = () => {
+    // Construct Google OAuth 2.0 URL using user's Client ID
+    const redirectUri = typeof window !== "undefined" ? `${window.location.origin}/api/auth/callback/google` : "http://localhost:3000/api/auth/callback/google";
+    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(
+      clientId
+    )}&redirect_uri=${encodeURIComponent(
+      redirectUri
+    )}&response_type=code&scope=openid%20email%20profile&prompt=select_account`;
+
+    // Redirect browser to Google Accounts OAuth Consent Screen
+    window.location.href = googleAuthUrl;
+  };
+
+  const handleGoogleDirectSignIn = async () => {
     setErrorMessage(null);
 
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1081205534900-fn5p8ks3hoc7qjhhrj0ricdl2g71js97.apps.googleusercontent.com";
+    // If user has not typed an email, prompt them or trigger Google Accounts consent redirect
+    if (!emailInput.trim() || !emailInput.includes("@")) {
+      // Direct redirect to Google Accounts
+      handleGoogleRedirect();
+      return;
+    }
 
-    // If email provided, use that specific Gmail address, otherwise prompt/use active Google account
-    const userGmail = emailInput.trim() && emailInput.includes("@") ? emailInput.trim() : "myaccount.gmail@gmail.com";
-    const userName = nameInput.trim() || userGmail.split("@")[0];
-
+    setIsLoading(true);
     try {
-      // 1. Try server auth endpoint
-      const res = await fetch("/api/auth/google", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "google_signin",
-          email: userGmail,
-          name: userName,
-        }),
-      }).catch(() => null);
+      const cleanEmail = emailInput.trim().toLowerCase();
+      const userName = nameInput.trim() || cleanEmail.split("@")[0];
 
-      if (res && res.ok) {
-        const data = await res.json();
-        if (data.success && data.session) {
-          saveStoredSession(data.session);
-          onSessionChanged(data.session);
-          onClose();
-          return;
-        }
-      }
-
-      // 2. Direct session save with strict per-Gmail namespacing
       const session: UserSession = {
         id: `google-${Date.now()}`,
-        email: userGmail,
+        email: cleanEmail,
         name: userName,
-        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userGmail}`,
+        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanEmail}`,
         provider: "google",
         isLoggedIn: true,
         loggedInAt: new Date().toISOString(),
@@ -74,7 +71,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       onSessionChanged(session);
       onClose();
     } catch {
-      setErrorMessage("Could not sign in with Google. Please check your network connection.");
+      setErrorMessage("Could not sign in with Google. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -85,12 +82,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMessage(null);
 
     if (!emailInput.trim() || !emailInput.includes("@")) {
-      setErrorMessage("Please enter a valid Gmail / Email address.");
-      return;
-    }
-
-    if (mode === "signup" && !passwordInput.trim()) {
-      setErrorMessage("Please enter a password.");
+      setErrorMessage("Please enter a valid Gmail address (e.g. your.name@gmail.com).");
       return;
     }
 
@@ -129,9 +121,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             </div>
             <div>
               <h3 className="text-lg font-extrabold text-slate-100">
-                {mode === "signup" ? "Create Your Account" : "Welcome Back"}
+                {mode === "signup" ? "Create Gmail Account" : "Sign In to JobPilot"}
               </h3>
-              <p className="text-xs text-slate-400">JobPilot AI • Google Credentials Connected</p>
+              <p className="text-xs text-slate-400">Google Credentials Connected</p>
             </div>
           </div>
           <button
@@ -146,14 +138,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-start space-x-2.5">
           <ShieldCheck className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            <strong className="text-white font-semibold">100% Private Isolation:</strong> Your saved jobs, uploaded CVs, and application history are stored strictly under your Gmail account. Other users cannot view or access your data.
+            <strong className="text-white font-semibold">100% Private Isolation:</strong> Your saved jobs, uploaded CVs, and application history are stored strictly under your Gmail address. Other users cannot view or access your data.
           </p>
         </div>
 
         {/* Google / Gmail Sign-In Button */}
         <div className="space-y-3">
           <button
-            onClick={handleGoogleSignIn}
+            onClick={handleGoogleDirectSignIn}
             disabled={isLoading}
             className="w-full py-3 px-4 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-sm flex items-center justify-center space-x-3 shadow-lg shadow-white/5 transition-all cursor-pointer border border-slate-200"
           >
@@ -181,7 +173,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           <div className="flex items-center space-x-3 text-slate-500 py-1">
             <div className="flex-1 h-px bg-slate-800" />
-            <span className="text-[11px] uppercase tracking-wider font-semibold">Or with email</span>
+            <span className="text-[11px] uppercase tracking-wider font-semibold">Or enter your Gmail</span>
             <div className="flex-1 h-px bg-slate-800" />
           </div>
         </div>
@@ -198,23 +190,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   placeholder="e.g. Kasun Perera"
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">Gmail / Email Address</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">Your Gmail Address</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="email"
-                placeholder="your.name@gmail.com"
+                placeholder="yourname@gmail.com"
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 required
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -229,7 +221,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 required
-                className="w-full pl-9 pr-3 py-2 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
               />
             </div>
           </div>
@@ -249,7 +241,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Loader2 className="w-4 h-4 animate-spin mx-auto" />
             ) : (
               <>
-                <span>{mode === "signup" ? "Create Account & Sign In" : "Sign In to Account"}</span>
+                <span>{mode === "signup" ? "Sign Up with Gmail" : "Sign In to Gmail Account"}</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
