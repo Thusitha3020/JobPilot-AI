@@ -22,16 +22,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const ProfileModule: React.FC = () => {
-  const [profile, setProfile] = useState<UserProfileData>(DEFAULT_PROFILE);
+  const [profile, setProfile] = useState<UserProfileData>(() => getStoredProfile());
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [saveToast, setSaveToast] = useState<boolean>(false);
   const [newSkillInput, setNewSkillInput] = useState<string>("");
   const [newTitleInput, setNewTitleInput] = useState<string>("");
   const [newLocationInput, setNewLocationInput] = useState<string>("");
-
-  useEffect(() => {
-    setProfile(getStoredProfile());
-  }, []);
 
   const handleSave = () => {
     const success = saveStoredProfile(profile);

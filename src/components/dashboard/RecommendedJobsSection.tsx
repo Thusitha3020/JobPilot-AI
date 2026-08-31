@@ -51,20 +51,14 @@ export const RecommendedJobsSection: React.FC<RecommendedJobsSectionProps> = ({
     hasPrevPage: false,
   });
 
-  // Sync global topnav search query into filters
-  useEffect(() => {
-    if (activeSearchQuery !== filters.keyword) {
-      setFilters((prev) => ({ ...prev, keyword: activeSearchQuery, page: 1 }));
-    }
-  }, [activeSearchQuery]);
-
-  // Fetch jobs from GET /api/jobs with query parameters whenever filters change
+  // Fetch jobs from GET /api/jobs with query parameters whenever filters or activeSearchQuery change
   useEffect(() => {
     async function loadJobsFromAPI() {
       setIsLoading(true);
       try {
+        const effectiveKeyword = activeSearchQuery || filters.keyword;
         const query = new URLSearchParams();
-        if (filters.keyword) query.set("keyword", filters.keyword);
+        if (effectiveKeyword) query.set("keyword", effectiveKeyword);
         if (filters.location) query.set("location", filters.location);
         if (filters.employmentType && filters.employmentType !== "all")
           query.set("employmentType", filters.employmentType);
@@ -99,7 +93,7 @@ export const RecommendedJobsSection: React.FC<RecommendedJobsSectionProps> = ({
     }
 
     loadJobsFromAPI();
-  }, [filters]);
+  }, [filters, activeSearchQuery]);
 
   const handleFilterChange = (updated: Partial<JobQueryOptions>) => {
     setFilters((prev) => ({ ...prev, ...updated }));

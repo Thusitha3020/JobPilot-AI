@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const CVManagerModule: React.FC = () => {
-  const [cvList, setCvList] = useState<CVDocument[]>([]);
+  const [cvList, setCvList] = useState<CVDocument[]>(() => getStoredCVs());
   const [selectedCvForDetails, setSelectedCvForDetails] = useState<CVDocument | null>(null);
 
   // Rename Dialog State
@@ -32,10 +32,6 @@ export const CVManagerModule: React.FC = () => {
 
   // Delete Confirmation State
   const [deletingCvId, setDeletingCvId] = useState<string | null>(null);
-
-  useEffect(() => {
-    setCvList(getStoredCVs());
-  }, []);
 
   const persistCVs = (newList: CVDocument[]) => {
     setCvList(newList);
