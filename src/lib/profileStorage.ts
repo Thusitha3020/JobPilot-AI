@@ -2,22 +2,22 @@ import { UserProfileData } from "@/types/profile";
 
 export const DEFAULT_PROFILE: UserProfileData = {
   personal: {
-    fullName: "Alex Morgan",
-    email: "alex.morgan@example.com",
-    phone: "+1 (555) 234-5678",
-    location: "San Francisco, CA",
+    fullName: "JobPilot Candidate",
+    email: "candidate@jobpilot.lk",
+    phone: "+94 77 123 4567",
+    location: "Colombo, Sri Lanka",
   },
   education: {
-    university: "University of California, Berkeley",
-    degree: "B.S. in Computer Science",
-    graduationYear: "2023",
+    university: "University of Moratuwa",
+    degree: "B.Sc. (Hons) in Computer Science & Engineering",
+    graduationYear: "2024",
   },
   professional: {
-    preferredJobTitles: ["IT Support Specialist", "System Administrator", "Full-Stack Engineer"],
-    preferredLocations: ["San Francisco, CA", "Remote"],
+    preferredJobTitles: ["Full-Stack Engineer", "Software Engineer", "IT Support Specialist"],
+    preferredLocations: ["Colombo, Western Province", "Kandy, Central Province", "Remote - Sri Lanka"],
     employmentType: "Full-time",
-    workPreference: "Remote",
-    minSalary: "$95,000 / yr",
+    workPreference: "Hybrid",
+    minSalary: "LKR 250,000 / mo",
   },
   skills: {
     itSupport: true,
@@ -26,12 +26,12 @@ export const DEFAULT_PROFILE: UserProfileData = {
     softwareTroubleshooting: true,
     systemAdministration: true,
     microsoftOffice: true,
-    otherSkills: ["TypeScript", "Active Directory", "Linux", "Docker", "Powershell"],
+    otherSkills: ["React", "TypeScript", "Next.js", "Node.js", "PostgreSQL", "Linux", "Docker"],
   },
   links: {
-    portfolio: "https://alexmorgan.dev",
-    linkedin: "https://linkedin.in/in/alexmorgan-pilot",
-    github: "https://github.com/alexmorgan-dev",
+    portfolio: "https://jobpilot.lk",
+    linkedin: "https://linkedin.com/in/jobpilot-candidate",
+    github: "https://github.com/jobpilot-candidate",
   },
   lastUpdated: new Date().toISOString(),
 };

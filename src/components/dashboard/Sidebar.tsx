@@ -15,6 +15,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { NavItemId, SidebarNavItem } from "@/types/dashboard";
+import { getStoredProfile } from "@/lib/profileStorage";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -22,48 +23,61 @@ interface SidebarProps {
   onSelectTab: (tab: NavItemId) => void;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  jobsCount?: number;
+  applicationsCount?: number;
 }
-
-const NAV_ITEMS: SidebarNavItem[] = [
-  { id: "dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
-  { id: "jobs", label: "Jobs", iconName: "Briefcase", badge: "142" },
-  { id: "applications", label: "Applications", iconName: "Send", badge: "19" },
-  { id: "cv-manager", label: "CV Manager", iconName: "FileText" },
-  { id: "profile", label: "Profile", iconName: "User" },
-  { id: "automation", label: "Automation", iconName: "Bot", isNew: true },
-  { id: "analytics", label: "Analytics", iconName: "BarChart3" },
-  { id: "settings", label: "Settings", iconName: "Settings" },
-];
-
-const getIcon = (iconName: string) => {
-  switch (iconName) {
-    case "LayoutDashboard":
-      return <LayoutDashboard className="w-5 h-5" />;
-    case "Briefcase":
-      return <Briefcase className="w-5 h-5" />;
-    case "Send":
-      return <Send className="w-5 h-5" />;
-    case "FileText":
-      return <FileText className="w-5 h-5" />;
-    case "User":
-      return <User className="w-5 h-5" />;
-    case "Bot":
-      return <Bot className="w-5 h-5" />;
-    case "BarChart3":
-      return <BarChart3 className="w-5 h-5" />;
-    case "Settings":
-      return <Settings className="w-5 h-5" />;
-    default:
-      return <LayoutDashboard className="w-5 h-5" />;
-  }
-};
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   onSelectTab,
   isOpenMobile,
   onCloseMobile,
+  jobsCount = 0,
+  applicationsCount = 0,
 }) => {
+  const profile = getStoredProfile();
+
+  const navItems: SidebarNavItem[] = [
+    { id: "dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
+    { id: "jobs", label: "Jobs", iconName: "Briefcase", badge: jobsCount > 0 ? String(jobsCount) : undefined },
+    { id: "applications", label: "Applications", iconName: "Send", badge: applicationsCount > 0 ? String(applicationsCount) : undefined },
+    { id: "cv-manager", label: "CV Manager", iconName: "FileText" },
+    { id: "profile", label: "Profile", iconName: "User" },
+    { id: "automation", label: "Automation", iconName: "Bot", isNew: true },
+    { id: "analytics", label: "Analytics", iconName: "BarChart3" },
+    { id: "settings", label: "Settings", iconName: "Settings" },
+  ];
+
+  const getInitials = (name: string) => {
+    if (!name) return "JP";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const getIcon = (iconName: string) => {
+    switch (iconName) {
+      case "LayoutDashboard":
+        return <LayoutDashboard className="w-5 h-5" />;
+      case "Briefcase":
+        return <Briefcase className="w-5 h-5" />;
+      case "Send":
+        return <Send className="w-5 h-5" />;
+      case "FileText":
+        return <FileText className="w-5 h-5" />;
+      case "User":
+        return <User className="w-5 h-5" />;
+      case "Bot":
+        return <Bot className="w-5 h-5" />;
+      case "BarChart3":
+        return <BarChart3 className="w-5 h-5" />;
+      case "Settings":
+        return <Settings className="w-5 h-5" />;
+      default:
+        return <LayoutDashboard className="w-5 h-5" />;
+    }
+  };
+
   const content = (
     <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800/80 text-slate-300">
       {/* Brand Header */}
@@ -97,7 +111,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="px-3 pb-2 text-[11px] font-semibold text-slate-400 tracking-wider uppercase">
           Navigation
         </div>
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive = activeTab === item.id;
           return (
             <button
@@ -160,13 +174,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <span className="text-xs font-semibold text-slate-200">
-              Pilot Autopilot Active
+              Autopilot Active
             </span>
           </div>
-          <span className="text-[10px] text-blue-400 font-medium">98% Match</span>
+          <span className="text-[10px] text-blue-400 font-medium">Auto Match</span>
         </div>
         <p className="text-xs text-slate-400 leading-relaxed mb-3">
-          Auto-matching active jobs based on your CV profile.
+          Auto-matching active Sri Lanka & global jobs based on your profile.
         </p>
         <button
           onClick={() => onSelectTab("automation")}
@@ -180,13 +194,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* User Footer Profile */}
       <div className="p-4 border-t border-slate-800/80 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-bold text-sm text-blue-400">
-            JD
+          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border border-slate-700 flex items-center justify-center font-bold text-xs text-white">
+            {getInitials(profile.personal.fullName)}
           </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold text-slate-200">Alex Morgan</p>
-            <p className="text-xs text-slate-400 truncate max-w-[110px]">
-              alex@jobpilot.ai
+          <div className="text-left min-w-0">
+            <p className="text-sm font-semibold text-slate-200 truncate max-w-[130px]">
+              {profile.personal.fullName}
+            </p>
+            <p className="text-xs text-slate-400 truncate max-w-[130px]">
+              {profile.personal.email}
             </p>
           </div>
         </div>

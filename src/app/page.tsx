@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { NavItemId, Job } from "@/types/dashboard";
-import { INITIAL_METRICS, MOCK_JOBS } from "@/data/mockJobs";
+import { INITIAL_METRICS, MOCK_JOBS, calculateMetricsFromJobs } from "@/data/mockJobs";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { MetricsSection } from "@/components/dashboard/MetricsSection";
@@ -22,7 +22,9 @@ export default function DashboardPage() {
 
   // Live jobs state loaded from API endpoint /api/jobs
   const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
-  const [metrics, setMetrics] = useState(INITIAL_METRICS);
+
+  // Recalculate metrics whenever jobs change
+  const metrics = calculateMetricsFromJobs(jobs);
 
   useEffect(() => {
     async function fetchJobsFromDatabase() {
@@ -57,15 +59,6 @@ export default function DashboardPage() {
           : job
       )
     );
-
-    // Update metrics count dynamically
-    setMetrics((prev) =>
-      prev.map((m) =>
-        m.id === "applications"
-          ? { ...m, value: (typeof m.value === "number" ? m.value : 19) + 1 }
-          : m
-      )
-    );
   };
 
   const handleScanCompleted = (newlyScannedJobs: Job[]) => {
@@ -78,6 +71,8 @@ export default function DashboardPage() {
     }
   };
 
+  const appliedJobsCount = jobs.filter((j) => j.applicationStatus === "applied").length;
+
   return (
     <div className={cn("min-h-screen flex flex-col bg-slate-950 text-slate-100", !isDarkMode && "light bg-slate-50 text-slate-900")}>
       <div className="flex flex-1 w-full min-h-screen">
@@ -87,6 +82,8 @@ export default function DashboardPage() {
           onSelectTab={setActiveTab}
           isOpenMobile={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          jobsCount={jobs.length}
+          applicationsCount={appliedJobsCount}
         />
 
         {/* Main Content Area */}

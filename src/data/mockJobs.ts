@@ -1,52 +1,62 @@
 import { Job, MetricCardData } from "@/types/dashboard";
 
-export const INITIAL_METRICS: MetricCardData[] = [
-  {
-    id: "new-jobs",
-    title: "Sri Lanka Roles",
-    value: 158,
-    change: "+32 today",
-    changeType: "positive",
-    description: "Active Sri Lankan jobs matched to your profile",
-    iconName: "Briefcase",
-  },
-  {
-    id: "strong-matches",
-    title: "Strong Matches",
-    value: 34,
-    change: "90%+ match score",
-    changeType: "positive",
-    description: "High probability applications in LK",
-    iconName: "Sparkles",
-  },
-  {
-    id: "applications",
-    title: "Applications",
-    value: 19,
-    change: "+4 this week",
-    changeType: "positive",
-    description: "Submitted applications in LK companies",
-    iconName: "Send",
-  },
-  {
-    id: "interviews",
-    title: "Interviews",
-    value: 4,
-    change: "2 upcoming",
-    changeType: "neutral",
-    description: "Scheduled interview rounds (Colombo/Kandy)",
-    iconName: "Calendar",
-  },
-  {
-    id: "offers",
-    title: "Offers",
-    value: 2,
-    change: "1 pending review",
-    changeType: "positive",
-    description: "Offers from SL Tech companies",
-    iconName: "Award",
-  },
-];
+export function calculateMetricsFromJobs(jobs: Job[]): MetricCardData[] {
+  const totalCount = jobs.length;
+  const strongMatchesCount = jobs.filter((j) => j.matchPercentage >= 90).length;
+  const appliedCount = jobs.filter((j) => j.applicationStatus === "applied").length;
+  const interviewingCount = jobs.filter((j) => j.applicationStatus === "interviewing").length;
+  const offersCount = jobs.filter((j) => j.applicationStatus === "offered").length;
+
+  return [
+    {
+      id: "new-jobs",
+      title: "Sri Lanka & Global Roles",
+      value: totalCount,
+      change: `${totalCount} active`,
+      changeType: "positive",
+      description: "Active roles in job queue",
+      iconName: "Briefcase",
+    },
+    {
+      id: "strong-matches",
+      title: "Strong Matches",
+      value: strongMatchesCount,
+      change: "90%+ match score",
+      changeType: "positive",
+      description: "High probability applications in LK",
+      iconName: "Sparkles",
+    },
+    {
+      id: "applications",
+      title: "Applications",
+      value: appliedCount,
+      change: appliedCount > 0 ? `${appliedCount} submitted` : "0 submitted",
+      changeType: appliedCount > 0 ? "positive" : "neutral",
+      description: "Active submitted job pipelines",
+      iconName: "Send",
+    },
+    {
+      id: "interviews",
+      title: "Interviews",
+      value: interviewingCount,
+      change: interviewingCount > 0 ? `${interviewingCount} active` : "0 scheduled",
+      changeType: interviewingCount > 0 ? "positive" : "neutral",
+      description: "Scheduled interview rounds",
+      iconName: "Calendar",
+    },
+    {
+      id: "offers",
+      title: "Offers",
+      value: offersCount,
+      change: offersCount > 0 ? `${offersCount} received` : "0 received",
+      changeType: offersCount > 0 ? "positive" : "neutral",
+      description: "Formal job offers received",
+      iconName: "Award",
+    },
+  ];
+}
+
+export const INITIAL_METRICS: MetricCardData[] = calculateMetricsFromJobs([]);
 
 export const MOCK_JOBS: Job[] = [
   {

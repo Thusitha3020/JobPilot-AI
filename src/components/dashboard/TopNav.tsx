@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Bell,
   Sun,
   Moon,
   Menu,
-  Sparkles,
   ChevronDown,
   Globe,
 } from "lucide-react";
 import { NavItemId } from "@/types/dashboard";
-import { cn } from "@/lib/utils";
+import { getStoredProfile } from "@/lib/profileStorage";
 
 interface TopNavProps {
   onOpenMobileSidebar: () => void;
@@ -35,9 +34,10 @@ export const TopNav: React.FC<TopNavProps> = ({
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profile = getStoredProfile();
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -73,6 +73,13 @@ export const TopNav: React.FC<TopNavProps> = ({
   ];
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const getInitials = (name: string) => {
+    if (!name) return "JP";
+    const parts = name.trim().split(" ");
+    if (parts.length >= 2) return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+    return name.slice(0, 2).toUpperCase();
+  };
 
   return (
     <header className="h-16 px-4 md:px-8 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md sticky top-0 z-20 flex items-center justify-between transition-colors">
@@ -118,6 +125,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             <span>Scan SL Web</span>
           </button>
         )}
+
         {/* Dark/Light Mode Toggle */}
         <button
           onClick={onToggleTheme}
@@ -186,10 +194,10 @@ export const TopNav: React.FC<TopNavProps> = ({
             className="flex items-center space-x-2.5 p-1.5 pl-2.5 pr-3 rounded-xl bg-slate-800/60 border border-slate-750 hover:bg-slate-800 transition-all cursor-pointer"
           >
             <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-bold text-xs text-white">
-              AM
+              {getInitials(profile.personal.fullName)}
             </div>
-            <span className="hidden md:inline text-xs font-semibold text-slate-200">
-              Alex Morgan
+            <span className="hidden md:inline text-xs font-semibold text-slate-200 max-w-[120px] truncate">
+              {profile.personal.fullName}
             </span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
@@ -197,10 +205,12 @@ export const TopNav: React.FC<TopNavProps> = ({
           {showProfileMenu && (
             <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2">
               <div className="p-3 border-b border-slate-800">
-                <p className="text-sm font-semibold text-slate-200">
-                  Alex Morgan
+                <p className="text-sm font-semibold text-slate-200 truncate">
+                  {profile.personal.fullName}
                 </p>
-                <p className="text-xs text-slate-400">Senior Full-Stack Pilot</p>
+                <p className="text-xs text-slate-400 truncate">
+                  {profile.personal.email}
+                </p>
               </div>
               <div className="py-1 text-xs text-slate-300">
                 <button

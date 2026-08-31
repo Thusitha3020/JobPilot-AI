@@ -1,26 +1,11 @@
 "use client";
 
 import React from "react";
-import {
-  Send,
-  FileText,
-  User,
-  Bot,
-  BarChart3,
-  Settings as SettingsIcon,
-  Briefcase,
-  UploadCloud,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  Zap,
-  ShieldCheck,
-  Sliders,
-} from "lucide-react";
 import { Job, NavItemId } from "@/types/dashboard";
 import { Button } from "@/components/ui/button";
 import { ProfileModule } from "@/components/profile/ProfileModule";
 import { CVManagerModule } from "@/components/cv/CVManagerModule";
+import { Send, Briefcase, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 
 interface TabViewProps {
   activeTab: NavItemId;
@@ -30,6 +15,14 @@ interface TabViewProps {
 
 export const OtherTabViews: React.FC<TabViewProps> = ({ activeTab, jobs, onViewJob }) => {
   const appliedJobs = jobs.filter((j) => j.applicationStatus === "applied");
+  const interviewingJobs = jobs.filter((j) => j.applicationStatus === "interviewing");
+  const offeredJobs = jobs.filter((j) => j.applicationStatus === "offered");
+
+  // Calculate dynamic stats
+  const avgMatchScore =
+    jobs.length > 0
+      ? Math.round(jobs.reduce((acc, curr) => acc + curr.matchPercentage, 0) / jobs.length)
+      : 0;
 
   switch (activeTab) {
     case "jobs":
@@ -40,32 +33,42 @@ export const OtherTabViews: React.FC<TabViewProps> = ({ activeTab, jobs, onViewJ
               <h2 className="text-2xl font-bold text-slate-100">All Matched Jobs</h2>
               <p className="text-sm text-slate-400">Explore all active job listings in your queue.</p>
             </div>
+            <span className="px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-semibold border border-blue-500/20">
+              {jobs.length} total listings
+            </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {jobs.map((job) => (
-              <div
-                key={job.id}
-                className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400">
-                      {job.jobType}
-                    </span>
-                    <span className="text-xs font-bold text-emerald-400">{job.matchPercentage}% Match</span>
+
+          {jobs.length === 0 ? (
+            <div className="p-8 rounded-3xl bg-slate-900/50 border border-slate-800 text-center text-slate-400">
+              No jobs available. Try scanning Sri Lanka job portals above.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {jobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400">
+                        {job.jobType}
+                      </span>
+                      <span className="text-xs font-bold text-emerald-400">{job.matchPercentage}% Match</span>
+                    </div>
+                    <h3 className="font-bold text-slate-100 text-base">{job.title}</h3>
+                    <p className="text-xs text-slate-400">{job.company} • {job.location}</p>
                   </div>
-                  <h3 className="font-bold text-slate-100 text-base">{job.title}</h3>
-                  <p className="text-xs text-slate-400">{job.company} • {job.location}</p>
+                  <div className="pt-3 border-t border-slate-800 flex justify-between items-center">
+                    <span className="text-xs text-slate-400">{job.salary}</span>
+                    <Button variant="outline" size="sm" onClick={() => onViewJob(job)}>
+                      Details
+                    </Button>
+                  </div>
                 </div>
-                <div className="pt-3 border-t border-slate-800 flex justify-between items-center">
-                  <span className="text-xs text-slate-400">{job.salary}</span>
-                  <Button variant="outline" size="sm" onClick={() => onViewJob(job)}>
-                    Details
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       );
 
@@ -78,31 +81,77 @@ export const OtherTabViews: React.FC<TabViewProps> = ({ activeTab, jobs, onViewJ
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {[
-              { title: "Applied", count: appliedJobs.length + 12, color: "border-blue-500/40 text-blue-400" },
-              { title: "Screening", count: 4, color: "border-indigo-500/40 text-indigo-400" },
-              { title: "Interviewing", count: 3, color: "border-amber-500/40 text-amber-400" },
-              { title: "Offers", count: 2, color: "border-emerald-500/40 text-emerald-400" },
-            ].map((col) => (
-              <div key={col.title} className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
-                <div className={`pb-2 border-b ${col.color} flex justify-between items-center font-semibold text-sm`}>
-                  <span>{col.title}</span>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-xs">{col.count}</span>
-                </div>
-                <div className="space-y-2 text-xs text-slate-300">
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                    <p className="font-semibold text-slate-200">Vercel Partner Labs</p>
-                    <p className="text-slate-400">Senior Full-Stack Engineer</p>
-                    <span className="inline-block mt-1 text-[10px] text-blue-400">Updated 2h ago</span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                    <p className="font-semibold text-slate-200">Cognitive Automation</p>
-                    <p className="text-slate-400">AI Automation Engineer</p>
-                    <span className="inline-block mt-1 text-[10px] text-amber-400">Interview scheduled</span>
-                  </div>
-                </div>
+            {/* Applied Column */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="pb-2 border-b border-blue-500/40 text-blue-400 flex justify-between items-center font-semibold text-sm">
+                <span>Applied</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-xs">{appliedJobs.length}</span>
               </div>
-            ))}
+              <div className="space-y-2 text-xs text-slate-300">
+                {appliedJobs.length === 0 ? (
+                  <p className="text-[11px] text-slate-500 py-4 text-center">No submitted applications yet.</p>
+                ) : (
+                  appliedJobs.map((j) => (
+                    <div key={j.id} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                      <p className="font-semibold text-slate-200">{j.company}</p>
+                      <p className="text-slate-400">{j.title}</p>
+                      <span className="inline-block mt-1 text-[10px] text-blue-400">Applied</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Screening Column */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="pb-2 border-b border-indigo-500/40 text-indigo-400 flex justify-between items-center font-semibold text-sm">
+                <span>Screening</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-xs">0</span>
+              </div>
+              <p className="text-[11px] text-slate-500 py-4 text-center">No applications in screening.</p>
+            </div>
+
+            {/* Interviewing Column */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="pb-2 border-b border-amber-500/40 text-amber-400 flex justify-between items-center font-semibold text-sm">
+                <span>Interviewing</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-xs">{interviewingJobs.length}</span>
+              </div>
+              <div className="space-y-2 text-xs text-slate-300">
+                {interviewingJobs.length === 0 ? (
+                  <p className="text-[11px] text-slate-500 py-4 text-center">No interviews scheduled yet.</p>
+                ) : (
+                  interviewingJobs.map((j) => (
+                    <div key={j.id} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                      <p className="font-semibold text-slate-200">{j.company}</p>
+                      <p className="text-slate-400">{j.title}</p>
+                      <span className="inline-block mt-1 text-[10px] text-amber-400">Interview round</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Offers Column */}
+            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+              <div className="pb-2 border-b border-emerald-500/40 text-emerald-400 flex justify-between items-center font-semibold text-sm">
+                <span>Offers</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-800 text-xs">{offeredJobs.length}</span>
+              </div>
+              <div className="space-y-2 text-xs text-slate-300">
+                {offeredJobs.length === 0 ? (
+                  <p className="text-[11px] text-slate-500 py-4 text-center">No active offers yet.</p>
+                ) : (
+                  offeredJobs.map((j) => (
+                    <div key={j.id} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+                      <p className="font-semibold text-slate-200">{j.company}</p>
+                      <p className="text-slate-400">{j.title}</p>
+                      <span className="inline-block mt-1 text-[10px] text-emerald-400">Offer Received</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </div>
       );
@@ -118,7 +167,7 @@ export const OtherTabViews: React.FC<TabViewProps> = ({ activeTab, jobs, onViewJ
         <div className="space-y-6 animate-in fade-in max-w-3xl">
           <div className="pb-4 border-b border-slate-800">
             <h2 className="text-2xl font-bold text-slate-100">AI Automation Rules</h2>
-            <p className="text-sm text-slate-400">Configure background matching and auto-pilot pilot preferences.</p>
+            <p className="text-sm text-slate-400">Configure background matching and auto-pilot preferences.</p>
           </div>
 
           <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
@@ -154,19 +203,19 @@ export const OtherTabViews: React.FC<TabViewProps> = ({ activeTab, jobs, onViewJ
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800">
-              <p className="text-xs text-slate-400">Interview Rate</p>
-              <p className="text-3xl font-bold text-emerald-400 mt-1">21.0%</p>
-              <p className="text-xs text-slate-500 mt-2">+4.2% vs industry avg</p>
+              <p className="text-xs text-slate-400">Total Active Jobs</p>
+              <p className="text-3xl font-bold text-emerald-400 mt-1">{jobs.length}</p>
+              <p className="text-xs text-slate-500 mt-2">Active roles analyzed in queue</p>
             </div>
             <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800">
               <p className="text-xs text-slate-400">Average Match Score</p>
-              <p className="text-3xl font-bold text-blue-400 mt-1">91.4%</p>
-              <p className="text-xs text-slate-500 mt-2">Based on 142 matched roles</p>
+              <p className="text-3xl font-bold text-blue-400 mt-1">{avgMatchScore}%</p>
+              <p className="text-xs text-slate-500 mt-2">Based on active candidate skills</p>
             </div>
             <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800">
-              <p className="text-xs text-slate-400">Offer Velocity</p>
-              <p className="text-3xl font-bold text-purple-400 mt-1">14 Days</p>
-              <p className="text-xs text-slate-500 mt-2">From application to offer</p>
+              <p className="text-xs text-slate-400">Applications Submitted</p>
+              <p className="text-3xl font-bold text-purple-400 mt-1">{appliedJobs.length}</p>
+              <p className="text-xs text-slate-500 mt-2">Submitted application pipelines</p>
             </div>
           </div>
         </div>
