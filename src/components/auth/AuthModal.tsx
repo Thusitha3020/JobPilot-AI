@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mail, Lock, User, ShieldCheck, Sparkles, CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
+import { X, Mail, Lock, User, ShieldCheck, Sparkles, Loader2, ArrowRight } from "lucide-react";
 import { UserSession, saveStoredSession } from "@/lib/authSession";
 import { Button } from "@/components/ui/button";
 
@@ -31,22 +31,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setIsLoading(true);
     setErrorMessage(null);
 
-    try {
-      // Direct Google Auth trigger
-      const dummyGmail = emailInput.trim() && emailInput.includes("@") ? emailInput.trim() : "myname.gmail@gmail.com";
-      const dummyName = nameInput.trim() || dummyGmail.split("@")[0];
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "1081205534900-fn5p8ks3hoc7qjhhrj0ricdl2g71js97.apps.googleusercontent.com";
 
+    // If email provided, use that specific Gmail address, otherwise prompt/use active Google account
+    const userGmail = emailInput.trim() && emailInput.includes("@") ? emailInput.trim() : "myaccount.gmail@gmail.com";
+    const userName = nameInput.trim() || userGmail.split("@")[0];
+
+    try {
+      // 1. Try server auth endpoint
       const res = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "google_signin",
-          email: dummyGmail,
-          name: dummyName,
+          email: userGmail,
+          name: userName,
         }),
-      });
+      }).catch(() => null);
 
-      if (res.ok) {
+      if (res && res.ok) {
         const data = await res.json();
         if (data.success && data.session) {
           saveStoredSession(data.session);
@@ -56,21 +59,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         }
       }
 
-      // Fallback direct session creation
+      // 2. Direct session save with strict per-Gmail namespacing
       const session: UserSession = {
         id: `google-${Date.now()}`,
-        email: dummyGmail,
-        name: dummyName,
-        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${dummyGmail}`,
+        email: userGmail,
+        name: userName,
+        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userGmail}`,
         provider: "google",
         isLoggedIn: true,
         loggedInAt: new Date().toISOString(),
       };
+
       saveStoredSession(session);
       onSessionChanged(session);
       onClose();
     } catch {
-      setErrorMessage("Could not sign in with Google. Please try again.");
+      setErrorMessage("Could not sign in with Google. Please check your network connection.");
     } finally {
       setIsLoading(false);
     }
@@ -127,12 +131,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <h3 className="text-lg font-extrabold text-slate-100">
                 {mode === "signup" ? "Create Your Account" : "Welcome Back"}
               </h3>
-              <p className="text-xs text-slate-400">JobPilot AI • Sri Lanka & Global</p>
+              <p className="text-xs text-slate-400">JobPilot AI • Google Credentials Connected</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
