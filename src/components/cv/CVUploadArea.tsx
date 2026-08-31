@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { UploadCloud, FileText, AlertCircle, CheckCircle2, ShieldCheck, Loader2 } from "lucide-react";
 import { validatePDFFile, formatFileSize } from "@/lib/cvValidation";
+import { getStoredProfile } from "@/lib/profileStorage";
 import { CVDocument } from "@/types/cv";
 import { Button } from "@/components/ui/button";
 
@@ -26,8 +27,9 @@ export const CVUploadArea: React.FC<CVUploadAreaProps> = ({ onUploadSuccess }) =
     }
 
     setIsUploading(true);
+    const activeProfile = getStoredProfile();
 
-    // Read PDF file as Data URL for local storage demo
+    // Read PDF file as Data URL for local storage
     const reader = new FileReader();
     reader.onload = (e) => {
       const dataUrl = e.target?.result as string;
@@ -47,18 +49,24 @@ export const CVUploadArea: React.FC<CVUploadAreaProps> = ({ onUploadSuccess }) =
         status: "Active",
         pdfDataUrl: dataUrl,
         extractedData: {
-          name: "Alex Morgan",
-          email: "alex.morgan@example.com",
-          phone: "+1 (555) 234-5678",
-          skills: ["PDF Upload", "Parsed Document"],
-          education: [],
+          name: activeProfile.personal.fullName || "Candidate",
+          email: activeProfile.personal.email || "candidate@jobpilot.lk",
+          phone: activeProfile.personal.phone || "+94 77 123 4567",
+          skills: activeProfile.skills.otherSkills || ["PDF Resume", "Parsed Document"],
+          education: [
+            {
+              institution: activeProfile.education.university || "University of Moratuwa",
+              degree: activeProfile.education.degree || "B.Sc. Computer Science",
+              endYear: activeProfile.education.graduationYear || "2024",
+            },
+          ],
           experience: [],
           projects: [],
           certifications: [],
-          languages: [],
-          portfolio: "",
-          linkedin: "",
-          github: "",
+          languages: ["English", "Sinhala"],
+          portfolio: activeProfile.links.portfolio || "",
+          linkedin: activeProfile.links.linkedin || "",
+          github: activeProfile.links.github || "",
         },
       };
 
