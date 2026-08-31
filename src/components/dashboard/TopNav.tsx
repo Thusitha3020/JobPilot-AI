@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { NavItemId } from "@/types/dashboard";
 import { UserSession } from "@/lib/authSession";
+import { RealTimeClock } from "@/components/common/RealTimeClock";
 
 interface TopNavProps {
   onOpenMobileSidebar: () => void;
@@ -122,8 +123,11 @@ export const TopNav: React.FC<TopNavProps> = ({
         </div>
       </div>
 
-      {/* Right Actions: Theme Toggle, Notifications, Auth Profile */}
+      {/* Right Actions: Live Clock, Theme Toggle, Notifications, Auth Profile */}
       <div className="flex items-center space-x-3 ml-4">
+        {/* Real-Time Live Clock & Date Widget */}
+        <RealTimeClock />
+
         {onOpenScanner && (
           <button
             onClick={onOpenScanner}
