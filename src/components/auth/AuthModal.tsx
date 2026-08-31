@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Mail, Lock, User, ShieldCheck, Sparkles, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
+import { X, Mail, Lock, User, ShieldCheck, Sparkles, Loader2, ArrowRight, AlertCircle, Info } from "lucide-react";
 import { UserSession, saveStoredSession } from "@/lib/authSession";
 import { Button } from "@/components/ui/button";
 
@@ -38,43 +38,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       redirectUri
     )}&response_type=code&scope=openid%20email%20profile&prompt=select_account`;
 
-    // Redirect browser to Google Accounts OAuth Consent Screen
     window.location.href = googleAuthUrl;
   };
 
   const handleGoogleDirectSignIn = async () => {
     setErrorMessage(null);
 
-    // If user has not typed an email, prompt them or trigger Google Accounts consent redirect
-    if (!emailInput.trim() || !emailInput.includes("@")) {
-      // Direct redirect to Google Accounts
-      handleGoogleRedirect();
+    // If email provided (e.g. thusitha3020@gmail.com), sign in directly to isolated user session
+    if (emailInput.trim() && emailInput.includes("@")) {
+      setIsLoading(true);
+      try {
+        const cleanEmail = emailInput.trim().toLowerCase();
+        const userName = nameInput.trim() || cleanEmail.split("@")[0];
+
+        const session: UserSession = {
+          id: `google-${Date.now()}`,
+          email: cleanEmail,
+          name: userName,
+          image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanEmail}`,
+          provider: "google",
+          isLoggedIn: true,
+          loggedInAt: new Date().toISOString(),
+        };
+
+        saveStoredSession(session);
+        onSessionChanged(session);
+        onClose();
+      } catch {
+        setErrorMessage("Could not sign in with Google. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const cleanEmail = emailInput.trim().toLowerCase();
-      const userName = nameInput.trim() || cleanEmail.split("@")[0];
-
-      const session: UserSession = {
-        id: `google-${Date.now()}`,
-        email: cleanEmail,
-        name: userName,
-        image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${cleanEmail}`,
-        provider: "google",
-        isLoggedIn: true,
-        loggedInAt: new Date().toISOString(),
-      };
-
-      saveStoredSession(session);
-      onSessionChanged(session);
-      onClose();
-    } catch {
-      setErrorMessage("Could not sign in with Google. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    // Otherwise redirect to Google Cloud Accounts Consent Screen
+    handleGoogleRedirect();
   };
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
@@ -82,7 +81,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setErrorMessage(null);
 
     if (!emailInput.trim() || !emailInput.includes("@")) {
-      setErrorMessage("Please enter a valid Gmail address (e.g. your.name@gmail.com).");
+      setErrorMessage("Please enter a valid Gmail address (e.g. thusitha3020@gmail.com).");
       return;
     }
 
@@ -142,6 +141,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </p>
         </div>
 
+        {/* Google Cloud Console Redirect URI Info Alert */}
+        <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[11px] leading-relaxed">
+          <div className="flex items-center space-x-1.5 font-semibold text-amber-200 mb-1">
+            <Info className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <span>Google Redirect URI Notice</span>
+          </div>
+          To avoid <code className="bg-amber-950 px-1 rounded text-amber-200">redirect_uri_mismatch</code>, ensure <code className="bg-amber-950 px-1 rounded text-amber-200">http://localhost:3000/api/auth/callback/google</code> is added under <strong>Authorized redirect URIs</strong> in Google Cloud Console.
+        </div>
+
         {/* Google / Gmail Sign-In Button */}
         <div className="space-y-3">
           <button
@@ -187,7 +195,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="e.g. Kasun Perera"
+                  placeholder="e.g. Thusitha"
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-slate-950 border border-slate-750 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
@@ -202,7 +210,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="email"
-                placeholder="yourname@gmail.com"
+                placeholder="thusitha3020@gmail.com"
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 required
