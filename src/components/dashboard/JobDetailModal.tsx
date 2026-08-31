@@ -14,6 +14,9 @@ import {
   Briefcase,
   Share2,
   FileCheck,
+  Copy,
+  Check,
+  Wand2,
 } from "lucide-react";
 import { Job } from "@/types/dashboard";
 import { Button } from "@/components/ui/button";
@@ -30,8 +33,41 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
   onApply,
 }) => {
   const [appliedSuccess, setAppliedSuccess] = useState(false);
+  const [showCoverLetter, setShowCoverLetter] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [coverLetter, setCoverLetter] = useState("");
 
   if (!job) return null;
+
+  const handleGenerateCoverLetter = () => {
+    setIsGenerating(true);
+    setShowCoverLetter(true);
+    setTimeout(() => {
+      const topSkills = job.matchingSkills.slice(0, 3).join(", ") || "software engineering and modern web tech";
+      const generated = `Dear Hiring Team at ${job.company},
+
+I am excited to submit my application for the ${job.title} role. With hands-on experience in ${topSkills}, I am confident in my ability to bring value to your engineering team.
+
+Key highlights of my qualifications for ${job.company}:
+• Expertise in ${job.matchingSkills[0] || "core development"} and modern web architecture
+• Strong problem-solving background in ${job.matchingSkills[1] || "system design"}
+• Proven commitment to delivering clean, maintainable, and high-performance software
+
+Thank you for your time and consideration. I look forward to the opportunity to discuss how my technical skills align with ${job.company}'s goals.
+
+Sincerely,
+Alex Morgan`;
+      setCoverLetter(generated);
+      setIsGenerating(false);
+    }, 800);
+  };
+
+  const handleCopyCoverLetter = () => {
+    navigator.clipboard.writeText(coverLetter);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   const handleApplyClick = () => {
     onApply(job);
@@ -188,6 +224,70 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* AI Cover Letter Generator */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-200 tracking-wide uppercase">
+                AI Cover Letter Generator
+              </h3>
+              {!showCoverLetter && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateCoverLetter}
+                  className="text-xs space-x-1.5 border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
+                >
+                  <Wand2 className="w-3.5 h-3.5" />
+                  <span>Generate Cover Letter</span>
+                </Button>
+              )}
+            </div>
+
+            {showCoverLetter && (
+              <div className="p-4 rounded-2xl bg-slate-950/80 border border-purple-500/30 space-y-3 animate-in fade-in">
+                <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                  <span className="text-xs font-semibold text-purple-300 flex items-center">
+                    <Sparkles className="w-3.5 h-3.5 mr-1" /> Tailored Cover Letter Preview
+                  </span>
+                  {!isGenerating && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyCoverLetter}
+                      className="text-xs py-1 px-2.5 space-x-1"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Letter</span>
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {isGenerating ? (
+                  <div className="py-6 text-center text-xs text-purple-300 flex items-center justify-center space-x-2 animate-pulse">
+                    <Wand2 className="w-4 h-4 animate-spin text-purple-400" />
+                    <span>Analyzing pilot skills & generating tailored cover letter...</span>
+                  </div>
+                ) : (
+                  <textarea
+                    value={coverLetter}
+                    onChange={(e) => setCoverLetter(e.target.value)}
+                    rows={8}
+                    className="w-full bg-transparent border-0 text-xs text-slate-200 focus:outline-none resize-none leading-relaxed font-sans"
+                  />
+                )}
+              </div>
+            )}
           </div>
         </div>
 
