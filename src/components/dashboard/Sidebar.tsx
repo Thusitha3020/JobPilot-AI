@@ -13,9 +13,12 @@ import {
   X,
   Sparkles,
   ChevronRight,
+  LogOut,
+  UserPlus,
+  ShieldCheck,
 } from "lucide-react";
 import { NavItemId, SidebarNavItem } from "@/types/dashboard";
-import { getStoredProfile } from "@/lib/profileStorage";
+import { UserSession } from "@/lib/authSession";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
@@ -25,6 +28,9 @@ interface SidebarProps {
   onCloseMobile: () => void;
   jobsCount?: number;
   applicationsCount?: number;
+  session: UserSession;
+  onOpenAuthModal: () => void;
+  onSignOut: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -34,9 +40,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   jobsCount = 0,
   applicationsCount = 0,
+  session,
+  onOpenAuthModal,
+  onSignOut,
 }) => {
-  const profile = getStoredProfile();
-
   const navItems: SidebarNavItem[] = [
     { id: "dashboard", label: "Dashboard", iconName: "LayoutDashboard" },
     { id: "jobs", label: "Jobs", iconName: "Briefcase", badge: jobsCount > 0 ? String(jobsCount) : undefined },
@@ -191,21 +198,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* User Footer Profile */}
-      <div className="p-4 border-t border-slate-800/80 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border border-slate-700 flex items-center justify-center font-bold text-xs text-white">
-            {getInitials(profile.personal.fullName)}
+      {/* User Footer Profile & Auth Status */}
+      <div className="p-4 border-t border-slate-800/80">
+        {session.isLoggedIn ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border border-slate-700 flex items-center justify-center font-bold text-xs text-white shrink-0">
+                {getInitials(session.name)}
+              </div>
+              <div className="text-left min-w-0">
+                <p className="text-sm font-semibold text-slate-200 truncate">
+                  {session.name}
+                </p>
+                <p className="text-[11px] text-slate-400 truncate">
+                  {session.email}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onSignOut}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors shrink-0"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-          <div className="text-left min-w-0">
-            <p className="text-sm font-semibold text-slate-200 truncate max-w-[130px]">
-              {profile.personal.fullName}
-            </p>
-            <p className="text-xs text-slate-400 truncate max-w-[130px]">
-              {profile.personal.email}
-            </p>
-          </div>
-        </div>
+        ) : (
+          <button
+            onClick={onOpenAuthModal}
+            className="w-full py-2 px-3 rounded-xl bg-blue-600/15 hover:bg-blue-600/25 border border-blue-500/30 text-blue-400 font-semibold text-xs flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+          >
+            <UserPlus className="w-4 h-4" />
+            <span>Sign in with Gmail</span>
+          </button>
+        )}
       </div>
     </div>
   );

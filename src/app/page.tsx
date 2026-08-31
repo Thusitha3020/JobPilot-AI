@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { NavItemId, Job } from "@/types/dashboard";
 import { INITIAL_METRICS, MOCK_JOBS, calculateMetricsFromJobs } from "@/data/mockJobs";
+import { UserSession, getStoredSession, signOutSession, saveStoredSession } from "@/lib/authSession";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { MetricsSection } from "@/components/dashboard/MetricsSection";
 import { RecommendedJobsSection } from "@/components/dashboard/RecommendedJobsSection";
 import { JobDetailModal } from "@/components/dashboard/JobDetailModal";
 import { ScanJobsModal } from "@/components/dashboard/ScanJobsModal";
+import { AuthModal } from "@/components/auth/AuthModal";
 import { OtherTabViews } from "@/components/dashboard/OtherTabViews";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +21,10 @@ export default function DashboardPage() {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isTopNavScannerOpen, setIsTopNavScannerOpen] = useState<boolean>(false);
+
+  // Authentication session state
+  const [session, setSession] = useState<UserSession>(() => getStoredSession());
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
 
   // Live jobs state loaded from API endpoint /api/jobs
   const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
@@ -71,6 +77,16 @@ export default function DashboardPage() {
     }
   };
 
+  const handleSessionChanged = (newSession: UserSession) => {
+    setSession(newSession);
+    saveStoredSession(newSession);
+  };
+
+  const handleSignOut = () => {
+    const guest = signOutSession();
+    setSession(guest);
+  };
+
   const appliedJobsCount = jobs.filter((j) => j.applicationStatus === "applied").length;
 
   return (
@@ -84,6 +100,9 @@ export default function DashboardPage() {
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
           jobsCount={jobs.length}
           applicationsCount={appliedJobsCount}
+          session={session}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onSignOut={handleSignOut}
         />
 
         {/* Main Content Area */}
@@ -97,6 +116,9 @@ export default function DashboardPage() {
             onToggleTheme={() => setIsDarkMode(!isDarkMode)}
             onSelectTab={setActiveTab}
             onOpenScanner={() => setIsTopNavScannerOpen(true)}
+            session={session}
+            onOpenAuthModal={() => setIsAuthModalOpen(true)}
+            onSignOut={handleSignOut}
           />
 
           {/* Body Dashboard View */}
@@ -139,6 +161,13 @@ export default function DashboardPage() {
         onClose={() => setIsTopNavScannerOpen(false)}
         onScanCompleted={handleScanCompleted}
         initialKeyword={searchQuery}
+      />
+
+      {/* Gmail / Google Authentication Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onSessionChanged={handleSessionChanged}
       />
     </div>
   );
