@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String             @id @default(uuid())
+  email             String             @unique
+  name              String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  profile           Profile?
+  cvs               CV[]
+  applications      Application[]
+  coverLetters      CoverLetter[]
+  notifications     Notification[]
+  automationSetting AutomationSetting?
+}
+
+model Profile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName            String
+  email               String
+  phone               String?
+  location            String?
+  university          String?
+  degree              String?
+  graduationYear      String?
+  preferredJobTitles  String[]
+  preferredLocations  String[]
+  employmentType      String?
+  workPreference      String?
+  minSalary           String?
+  skills              String[]
+  portfolioUrl        String?
+  linkedinUrl         String?
+  githubUrl           String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model CV {
+  id           String        @id @default(uuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName     String
+  originalName String
+  fileSize     String
+  rawSizeBytes Int
+  isDefault    Boolean       @default(false)
+  status       String        @default("Active")
+  pdfUrl       String?
+  extractedData Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+}
+
+model JobSource {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  baseUrl   String?
+  isActive  Boolean  @default(true)
+  jobs      Job[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Job {
+  id              String        @id @default(uuid())
+  source          String        // e.g. "LinkedIn", "Indeed", "Direct", "Manual"
+  sourceJobId     String        // External source ID
+  jobSourceId     String?
+  jobSourceRef    JobSource?    @relation(fields: [jobSourceId], references: [id])
+  title           String
+  company         String
+  location        String
+  description     String
+  requirements    String[]      // List of requirement strings
+  salary          String?
+  employmentType  String?       // e.g. "Full-time", "Remote", "Hybrid"
+  url             String?
+  matchPercentage Int           @default(85)
+  matchingSkills  String[]
+  missingSkills   String[]
+  postedAt        DateTime      @default(now())
+  deadline        DateTime?
+  discoveredAt    DateTime      @default(now())
+  lastCheckedAt   DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  applications    Application[]
+
+  // Duplicate Protection using source + sourceJobId
+  @@unique([source, sourceJobId])
+}
+
+model Application {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  cvId        String?
+  cv          CV?          @relation(fields: [cvId], references: [id])
+  status      String       @default("applied")
+  appliedAt   DateTime     @default(now())
+  notes       String?
+  coverLetter CoverLetter?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model CoverLetter {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  applicationId String      @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  content       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("info")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AutomationSetting {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  autoMatchThreshold Int      @default(90)
+  autoCustomizeCV    Boolean  @default(true)
+  emailNotifications Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
