@@ -79,16 +79,17 @@ export async function GET(
 }
 
 function getCompanyLogo(company: string): string {
-  if (company.includes("Vercel")) return "⚡";
-  if (company.includes("Cognitive")) return "🤖";
-  if (company.includes("HyperScale")) return "🚀";
-  if (company.includes("Apex")) return "🏢";
-  if (company.includes("CloudPilot")) return "☁️";
-  if (company.includes("NeuralFlow")) return "🧠";
-  if (company.includes("MetroNet")) return "🌐";
-  if (company.includes("DesignPilot")) return "🎨";
-  if (company.includes("Fortress")) return "🛡️";
-  if (company.includes("MobilePilot")) return "📱";
+  if (company.includes("WSO2")) return "☁️";
+  if (company.includes("99x")) return "🚀";
+  if (company.includes("Sysco")) return "🧠";
+  if (company.includes("IFS")) return "🏢";
+  if (company.includes("Virtusa")) return "🏢";
+  if (company.includes("Surge")) return "⚡";
+  if (company.includes("Dialog")) return "📱";
+  if (company.includes("Commercial Bank")) return "🏦";
+  if (company.includes("Axiata")) return "🌐";
+  if (company.includes("Creative")) return "💻";
+  if (company.includes("Ikman")) return "🇱🇰";
   return "🏢";
 }
 

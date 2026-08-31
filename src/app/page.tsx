@@ -8,6 +8,7 @@ import { TopNav } from "@/components/dashboard/TopNav";
 import { MetricsSection } from "@/components/dashboard/MetricsSection";
 import { RecommendedJobsSection } from "@/components/dashboard/RecommendedJobsSection";
 import { JobDetailModal } from "@/components/dashboard/JobDetailModal";
+import { ScanJobsModal } from "@/components/dashboard/ScanJobsModal";
 import { OtherTabViews } from "@/components/dashboard/OtherTabViews";
 import { cn } from "@/lib/utils";
 
@@ -17,8 +18,9 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [isTopNavScannerOpen, setIsTopNavScannerOpen] = useState<boolean>(false);
 
-  // Live jobs state loaded from PostgreSQL API endpoint /api/jobs
+  // Live jobs state loaded from API endpoint /api/jobs
   const [jobs, setJobs] = useState<Job[]>(MOCK_JOBS);
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
 
@@ -33,7 +35,7 @@ export default function DashboardPage() {
           }
         }
       } catch (err) {
-        console.warn("Could not fetch jobs from PostgreSQL API endpoint:", err);
+        console.warn("Could not fetch jobs from API endpoint:", err);
       }
     }
     fetchJobsFromDatabase();
@@ -66,6 +68,16 @@ export default function DashboardPage() {
     );
   };
 
+  const handleScanCompleted = (newlyScannedJobs: Job[]) => {
+    if (newlyScannedJobs.length > 0) {
+      setJobs((prev) => {
+        const existingIds = new Set(prev.map((j) => j.id));
+        const uniqueScanned = newlyScannedJobs.filter((j) => !existingIds.has(j.id));
+        return [...uniqueScanned, ...prev];
+      });
+    }
+  };
+
   return (
     <div className={cn("min-h-screen flex flex-col bg-slate-950 text-slate-100", !isDarkMode && "light bg-slate-50 text-slate-900")}>
       <div className="flex flex-1 w-full min-h-screen">
@@ -87,6 +99,7 @@ export default function DashboardPage() {
             isDarkMode={isDarkMode}
             onToggleTheme={() => setIsDarkMode(!isDarkMode)}
             onSelectTab={setActiveTab}
+            onOpenScanner={() => setIsTopNavScannerOpen(true)}
           />
 
           {/* Body Dashboard View */}
@@ -121,6 +134,14 @@ export default function DashboardPage() {
         job={selectedJob}
         onClose={() => setSelectedJob(null)}
         onApply={handleApplyJob}
+      />
+
+      {/* TopNav Scanner Modal */}
+      <ScanJobsModal
+        isOpen={isTopNavScannerOpen}
+        onClose={() => setIsTopNavScannerOpen(false)}
+        onScanCompleted={handleScanCompleted}
+        initialKeyword={searchQuery}
       />
     </div>
   );

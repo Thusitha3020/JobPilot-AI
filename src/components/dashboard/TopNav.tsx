@@ -9,8 +9,7 @@ import {
   Menu,
   Sparkles,
   ChevronDown,
-  CheckCircle2,
-  XCircle,
+  Globe,
 } from "lucide-react";
 import { NavItemId } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
@@ -22,6 +21,7 @@ interface TopNavProps {
   isDarkMode: boolean;
   onToggleTheme: () => void;
   onSelectTab?: (tab: NavItemId) => void;
+  onOpenScanner?: () => void;
 }
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -31,6 +31,7 @@ export const TopNav: React.FC<TopNavProps> = ({
   isDarkMode,
   onToggleTheme,
   onSelectTab,
+  onOpenScanner,
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -50,21 +51,21 @@ export const TopNav: React.FC<TopNavProps> = ({
   const notifications = [
     {
       id: 1,
-      title: "New 96% Match Found!",
+      title: "New 97% Match Found on Ikman.lk!",
       time: "10m ago",
       read: false,
       type: "match",
     },
     {
       id: 2,
-      title: "Interview Request: Vercel Partner Labs",
+      title: "Interview Request: WSO2 Sri Lanka",
       time: "1h ago",
       read: false,
       type: "interview",
     },
     {
       id: 3,
-      title: "CV Optimization Complete",
+      title: "Sri Lanka Web Scan Complete",
       time: "3h ago",
       read: true,
       type: "cv",
@@ -95,7 +96,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search jobs, skills, companies, or locations... (Ctrl + K)"
+            placeholder="Search jobs, skills, Sri Lankan cities (Colombo, Kandy...)"
             className="w-full pl-9 pr-12 py-2 rounded-xl bg-slate-950/70 border border-slate-800 text-sm text-slate-200 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
           />
           <div className="hidden sm:flex absolute inset-y-0 right-0 pr-3 items-center pointer-events-none">
@@ -108,6 +109,15 @@ export const TopNav: React.FC<TopNavProps> = ({
 
       {/* Right Actions: Theme Toggle, Notifications, Profile */}
       <div className="flex items-center space-x-3 ml-4">
+        {onOpenScanner && (
+          <button
+            onClick={onOpenScanner}
+            className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-blue-600/15 border border-blue-500/30 text-blue-400 hover:bg-blue-600/25 transition-all text-xs font-semibold cursor-pointer"
+          >
+            <Globe className="w-4 h-4" />
+            <span>Scan SL Web</span>
+          </button>
+        )}
         {/* Dark/Light Mode Toggle */}
         <button
           onClick={onToggleTheme}
