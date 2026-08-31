@@ -86,6 +86,7 @@ export default function DashboardPage() {
             onSearchChange={setSearchQuery}
             isDarkMode={isDarkMode}
             onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+            onSelectTab={setActiveTab}
           />
 
           {/* Body Dashboard View */}

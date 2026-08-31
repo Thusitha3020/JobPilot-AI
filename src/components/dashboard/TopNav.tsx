@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react";
+import { NavItemId } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
 interface TopNavProps {
@@ -20,6 +21,7 @@ interface TopNavProps {
   onSearchChange: (query: string) => void;
   isDarkMode: boolean;
   onToggleTheme: () => void;
+  onSelectTab?: (tab: NavItemId) => void;
 }
 
 export const TopNav: React.FC<TopNavProps> = ({
@@ -28,9 +30,22 @@ export const TopNav: React.FC<TopNavProps> = ({
   onSearchChange,
   isDarkMode,
   onToggleTheme,
+  onSelectTab,
 }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const notifications = [
     {
@@ -76,6 +91,7 @@ export const TopNav: React.FC<TopNavProps> = ({
             <Search className="w-4 h-4" />
           </div>
           <input
+            ref={inputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
@@ -177,14 +193,32 @@ export const TopNav: React.FC<TopNavProps> = ({
                 <p className="text-xs text-slate-400">Senior Full-Stack Pilot</p>
               </div>
               <div className="py-1 text-xs text-slate-300">
-                <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+                <button
+                  onClick={() => {
+                    onSelectTab?.("profile");
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                >
                   Profile Settings
                 </button>
-                <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+                <button
+                  onClick={() => {
+                    onSelectTab?.("automation");
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                >
                   AI Preference Rules
                 </button>
-                <button className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 text-rose-400 transition-colors">
-                  Log Out
+                <button
+                  onClick={() => {
+                    onSelectTab?.("settings");
+                    setShowProfileMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 hover:text-slate-100 transition-colors cursor-pointer"
+                >
+                  Account Settings
                 </button>
               </div>
             </div>
